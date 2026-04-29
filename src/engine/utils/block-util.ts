@@ -37,7 +37,8 @@ class BlockUtil {
     }
 
     public static createRandomBlock(): AbstractBlock {
-        return this.createBlock(Math.floor(Math.random() * 6));
+        const length = Object.keys(this.BlockClassMapper).length;
+        return this.createBlock(Math.floor(Math.random() * length));
     }
 
     public static createBlock(blockType: BlockType): AbstractBlock {

@@ -105,11 +105,7 @@ class Board {
             this.fallDownCurrentBlock();
         }
     }
-
-    private isGameOver(): boolean {
-        return false;
-    }
-
+    
     private emptyCurrentBlock(): boolean {
         return this.currentBlock === null;
     }

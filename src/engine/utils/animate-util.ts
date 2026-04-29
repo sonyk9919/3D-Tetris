@@ -7,7 +7,10 @@ class AnimateUtil {
             let finished = 0;
 
             meshes.forEach((mesh) => {
-                const material = (mesh as any).material;
+                if (!(mesh instanceof Three.Mesh)) {
+                    throw new Error();
+                }
+                const material = mesh.material;
                 gsap.to(material.color, { r: 1, g: 1, b: 1, duration: 0.08 });
                 gsap.to(mesh.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 0.1, ease: "power2.out" });
 
@@ -39,17 +42,16 @@ class AnimateUtil {
                         ease: "power2.out",
                     });
 
-                    gsap.to(particle.scale, { x: 0, y: 0, z: 0, duration: particleLifetime, ease: "power3.in" });
-                    gsap.to(mat.color, { r: 255, g: 255, b: 255, duration: particleLifetime });
-                    setTimeout(() => animate.remove(particle), particleLifetime * 1000);
+                    gsap.to(particle.scale, { x: 0, y: 0, z: 0, duration: particleLifetime, ease: "power3.in", onComplete: () => { animate.remove(particle); }});
+                    gsap.to(mat.color, { r: 1, g: 1, b: 1, duration: particleLifetime });
                 }
 
                 const onComplete = () => {
-                        map.remove(mesh);
-                        finished++;
+                    map.remove(mesh);
+                    finished++;
 
-                        if (finished === meshes.length) resolve();
-                    }
+                    if (finished === meshes.length) resolve();
+                }
                 gsap.to(mesh.scale, { x: 0, y: 0, z: 0, duration: 0.25, delay: 0.05, ease: "power3.in", onComplete });
                 gsap.to(material.color, { r: 0, g: 0, b: 0, duration: 0.25, delay: 0.05 });
             });

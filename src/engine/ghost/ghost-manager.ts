@@ -11,16 +11,13 @@ class GhostManager {
         const clone = update.clone();
 
         clone.traverse(obj => {
-            if ((obj as any).isMesh) {
-                const mesh = obj as Three.Mesh;
-
-                mesh.material = new Three.MeshBasicMaterial({
-                    color,
-                    opacity: 0.6,
-                    transparent: true,
-                    depthWrite: false,
-                });
-            }
+            if (!(obj instanceof Three.Mesh)) return;
+            obj.material = new Three.MeshBasicMaterial({
+                color,
+                opacity: 0.6,
+                transparent: true,
+                depthWrite: false,
+            });
         });
         this.ghost.clear();
         this.ghost.add(clone);
