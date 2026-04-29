@@ -3,59 +3,57 @@ import * as Three from 'three';
 
 class AnimateUtil {
     public static async clearLine(map: Three.Group, animate: Three.Group, meshes: Three.Object3D[]): Promise<void> {
-        return new Promise((resolve) => {
-            let finished = 0;
+        await Promise.all(meshes.map((mesh) => new Promise<void>((resolve, reject) => {
+            if (!(mesh instanceof Three.Mesh)) {
+                reject(new Error(`clearLine: expected Mesh, got "${mesh.type}"`));
+                return;
+            }
 
-            meshes.forEach((mesh) => {
-                if (!(mesh instanceof Three.Mesh)) {
-                    throw new Error();
-                }
-                const material = mesh.material;
-                gsap.to(material.color, { r: 1, g: 1, b: 1, duration: 0.08 });
-                gsap.to(mesh.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 0.1, ease: "power2.out" });
+            const material = mesh.material;
+            gsap.to(material.color, { r: 1, g: 1, b: 1, duration: 0.08 });
+            gsap.to(mesh.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 0.1, ease: "power2.out" });
 
-                const particleCount = 12;
-                const particleLifetime = 0.35;
+            const particleCount = 12;
+            const particleLifetime = 0.35;
 
-                const origin = new Three.Vector3();
-                mesh.getWorldPosition(origin);
+            const origin = new Three.Vector3();
+            mesh.getWorldPosition(origin);
 
-                for (let i = 0; i < particleCount; i++) {
-                    const geom = new Three.BoxGeometry(0.2, 0.2, 0.2);
-                    const mat = new Three.MeshBasicMaterial({ color: material.color });
-                    const particle = new Three.Mesh(geom, mat);
+            for (let i = 0; i < particleCount; i++) {
+                const geom = new Three.BoxGeometry(0.2, 0.2, 0.2);
+                const mat = new Three.MeshBasicMaterial({ color: material.color });
+                const particle = new Three.Mesh(geom, mat);
 
-                    particle.position.copy(origin);
-                    animate.add(particle);
+                particle.position.copy(origin);
+                animate.add(particle);
 
-                    const dir = new Three.Vector3(
-                        (Math.random() - 0.5) * 2,
-                        (Math.random() - 0.5) * 2,
-                        (Math.random() - 0.5) * 2,
-                    ).normalize().multiplyScalar(Math.random() * 1.2 + 0.4);
+                const dir = new Three.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                ).normalize().multiplyScalar(Math.random() * 1.2 + 0.4);
 
-                    gsap.to(particle.position, {
-                        x: particle.position.x + dir.x,
-                        y: particle.position.y + dir.y,
-                        z: particle.position.z + dir.z,
-                        duration: particleLifetime,
-                        ease: "power2.out",
-                    });
+                gsap.to(particle.position, {
+                    x: particle.position.x + dir.x,
+                    y: particle.position.y + dir.y,
+                    z: particle.position.z + dir.z,
+                    duration: particleLifetime,
+                    ease: "power2.out",
+                });
 
-                    gsap.to(particle.scale, { x: 0, y: 0, z: 0, duration: particleLifetime, ease: "power3.in", onComplete: () => { animate.remove(particle); }});
-                    gsap.to(mat.color, { r: 1, g: 1, b: 1, duration: particleLifetime });
-                }
+                gsap.to(particle.scale, { x: 0, y: 0, z: 0, duration: particleLifetime, ease: "power3.in", onComplete: () => { animate.remove(particle); } });
+                gsap.to(mat.color, { r: 1, g: 1, b: 1, duration: particleLifetime });
+            }
 
-                const onComplete = () => {
+            gsap.to(mesh.scale, {
+                x: 0, y: 0, z: 0, duration: 0.25, delay: 0.05, ease: "power3.in",
+                onComplete: () => {
                     map.remove(mesh);
-                    finished++;
-
-                    if (finished === meshes.length) resolve();
-                }
-                gsap.to(mesh.scale, { x: 0, y: 0, z: 0, duration: 0.25, delay: 0.05, ease: "power3.in", onComplete });
-                gsap.to(material.color, { r: 0, g: 0, b: 0, duration: 0.25, delay: 0.05 });
+                    resolve();
+                },
             });
-        });
+            gsap.to(material.color, { r: 0, g: 0, b: 0, duration: 0.25, delay: 0.05 });
+        })));
     }
 
     public static takeDown(active: Three.Group, animate: Three.Group, fallDistance: number, color: number): number {
